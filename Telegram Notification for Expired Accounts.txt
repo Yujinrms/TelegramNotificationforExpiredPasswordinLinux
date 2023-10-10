@@ -1,0 +1,28 @@
+#!/bin/bash
+
+#CRT Array line retrieves a list of usernames ($CRT) from the /etc/passwd file, excluding a specific users (centos). It uses a combination of grep, cut, and other Unix commands to extract the usernames.
+
+CRT=($(less /etc/passwd | grep -wv 'centos' | grep -o '/home/.*' | cut -d: -f1,1 | cut -c 7-20));
+#positive=(`expr $datedif \* -1`);
+
+
+#For Loop script enters a for loop to iterate over each username in the $CRT array.
+for i in "${CRT[@]}"
+do
+#Password Expiry Date: It uses the chage command to get the password expiration date (datetot) for each user and extracts this information using grep and cut commands.
+  datetot=$(sudo chage -l $i | grep 'Password expires' | grep -o ': .*' | cut -c '3-20')
+  datedif=$(d1=$(date -d "$datetot" +%s); d2=$(date -d "$date" +%s); echo $(( (d1 - d2) / 86400 )))
+
+#Calculate Days Until Expiry: It calculates the number of days until the password expires (datedif) by converting the expiration date and the current date into Unix timestamps and then calculating the difference.	
+  echo "$i["$count"]=$datedif"
+        if [[ $datedif -ge 0 ]]
+ then
+        echo "Not Expired"
+
+ else
+        positive=`expr $datedif \* -1`;
+#Telegram Notification: It sends a notification to a Telegram chat using the curl command, providing details about the expired account, including the username (${i}) and the number of days the account has been expired (${positive}).
+        curl --location --request POST "(TELEGRAM BOT AND CHAT ID)&text=YOUR_SERVER: ${i} account is Expired. Kindly ssh to the server to reset your password. Total days account is expired: ${positive}";
+ fi
+  count=$((count + 1))
+done;
